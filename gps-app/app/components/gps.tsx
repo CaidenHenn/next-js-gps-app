@@ -64,7 +64,7 @@ const Gps: React.FC = () => {
 
   useEffect(() => {
     if (directionMarkerRef.current) {
-      directionMarkerRef.current.setRotation(30);
+      directionMarkerRef.current.setRotation(0);
       
     }
     console.log("Heading is : ",heading)
