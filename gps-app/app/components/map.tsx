@@ -14,6 +14,7 @@ import 'leaflet-routing-machine';
 import RoutingMachine from './map_router';
 import Gps from './gps';
 import 'leaflet-rotate';
+import Navigation from './navigation'
 
 //Sets the icons to different marker types
 delete L.Icon.Default.prototype._getIconUrl;
@@ -27,18 +28,23 @@ L.Icon.Default.mergeOptions({
 //defiens the map component
 
 // const defaultRotation = 0;
-const Map = ({ showRoutingPath }) => {
 
+//global value for testing
+
+  
+
+
+const Map = ({ onMarkerPlaced, showRoutingPath }) => {
+  const navigation = Navigation();
+  const initialPosition = [28.14961672938298, -81.85145437717439];
+  const [linePositions, setLinePositions] = useState([])
+  const [markerPosition, setMarkerPosition] = useState(initialPosition);
+  const closest_coord_to_goal = null;
   const bounds = [
     [28.143425 , -81.8540972222], // Southwest coordinates
     [28.1531166667, -81.84305]  // Northeast coordinates
   ];
 
-  const lines =[[0.675986819291919,-1.180686950683594],
-[0.5990872890098071,-1.136741638183594],
-[0.5661300090071965,-1.1827468872070315]];
-
- // const setMap = useMap();
   
  const mapRef = useRef();
   // defines position component as Center of the map
@@ -46,7 +52,6 @@ const Map = ({ showRoutingPath }) => {
   //local image path
   const imageUrl = '/satellite_poly_gps.jpg';
   // Define bounds component
- // const imageBounds = [[40.712216, -74.22655], [40.773941, -74.12544]]; 
  const imageBounds = [
   [28.143540, -81.853317],// Southwest coordinates
   [28.153644 , -81.843268] // Northeast coordinates
@@ -55,12 +60,13 @@ const Map = ({ showRoutingPath }) => {
  
 const MapEvents = () => {
   const map= useMap();
-  useEffect(() => {
-    const map = mapRef.current;
-    if (map) {
-      map.fitBounds(bounds); // Automatically adjust to bounds
-    }
-  }, []);
+  // useEffect(() => {
+  //   const map = mapRef.current;
+  //   if (map) {
+  //     map.fitBounds(bounds); // Automatically adjust to bounds
+  //   }
+  // }, []);
+
   useEffect(() => {
     mapRef.current = map;
     // Rotate the map by 45 degrees on initial load
@@ -75,8 +81,51 @@ const MapEvents = () => {
   
       return null; // No rendering needed
     };
-
   const polylineRef = useRef<L.Polyline | null>(null);
+
+  const moveMarker = (key) => {
+    const moveStep = 0.00001;
+    const [lat, lng] = markerPosition;
+    console.log("MOVING");
+    setLinePositions([markerPosition,navigation.Navigate(markerPosition,closest_coord_to_goal)[0]]);
+    switch (key) {
+      case 'w':
+        setMarkerPosition([lat + moveStep, lng]);
+        break;
+      case 's':
+        setMarkerPosition([lat - moveStep, lng]);
+        break;
+      case 'a':
+        setMarkerPosition([lat, lng - moveStep]);
+        break;
+      case 'd':
+        setMarkerPosition([lat, lng + moveStep]);
+        break;
+      default:
+        break;
+    }
+
+    
+      console.log('Marker coordinates:', markerPosition);
+      
+      
+      
+
+  };
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      moveMarker(event.key);
+    };
+
+    // Add keydown event listener when the component is mounted
+    window.addEventListener('keydown', handleKeyDown);
+
+    // Cleanup the event listener when the component is unmounted
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [markerPosition]);
+
 
   //event handler triggered when a shape or marker is added
   const onCreated = (e) => {
@@ -95,58 +144,36 @@ const MapEvents = () => {
         console.log('Polygon coordinates:', latlngs);
         // Add the polygon to the map
         layer.addTo(mapRef.current); // Add to the map instance
-    } else if (e.layerType === 'marker') {
-        const latlng = layer.getLatLng(); 
-        console.log('Marker coordinates:', latlng);
-        // Add the marker to the map
-        layer.addTo(mapRef.current); // Add to the map instance
+
+    } if (e.layerType === 'marker') {
+
+
+
+      
+
+
+
     } else {
         console.log('Layer type created:', e.layerType);
     }
   };
-
+  const DynamicLine = ({ line_positions }) => {
+    return <Polyline positions={line_positions} color="blue" />;
+  };
   
-  
-  
-
-
-
-  
-  // const ImageOverlay = () => {
-  //   //defines map as the curreent leaflet map instance
-  //   const map = useMap();
-    
-  //   //when the image is mounted, a image overlay is added and when it unmounts it is removed
-  //   useEffect(() => {
-      
-  //     // Creates an image overlay on the map
-  //     const overlay = L.imageOverlay(imageUrl, imageBounds).addTo(map);
-  //     map.fitBounds(imageBounds); // Fit the map to the bounds of the image
-      
-  //     return () => {
-  //       map.removeLayer(overlay); // Clean up the overlay on unmount
-  //     };
-  //   }, [map]);
-
-  //   return null; // This component doesn't render anything visible
-  // };
-
-    //render();
-
-  //
   return (
     
     <MapContainer whenCreated={mapInstance => 
     { mapRef.current = mapInstance; }} 
     center={position} 
     //minZoom={17}
-    zoom ={15}
+    zoom ={17}
     rotate={true}
    // bounds={bounds}
     // maxBounds={bounds}
     style={{ height: '800px', width: '100%' }}  >
       
-      <RoutingMachine waypoints={lines} showRoutingPath={showRoutingPath} />
+    
       {/* <ImageOverlay /> */}
       <TileLayer
   url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
@@ -157,7 +184,7 @@ const MapEvents = () => {
       <FeatureGroup>
       <EditControl
         position="topright"
-        //onCreated={onCreated}
+        onCreated={onCreated}
         draw={{
           rectangle: true, // Enable drawing rectangles
           polyline: true,   // Enable drawing polylines
@@ -172,22 +199,18 @@ const MapEvents = () => {
       </FeatureGroup>
       <MapEvents />
       <Gps />
-      {/* Markers */}
-      {/* <Polygon
-  coordinates={[ [0.675986819291919,-1.180686950683594],[0.677703313285104,-1.180686950683594],[0.7521985455550926,-1.1360549926757815],[0.759750988692249,-1.0691070556640627],[0.675986819291919,-1.180686950683594]]} 
-  fillOpacity={0.5}
-  strokeWidth={1}
-/> */}
-
-      /*
-      
       <Marker position={[28.150288374131215, -81.85080528259279]}>
         <Popup>IST Entrance.</Popup>
       </Marker>
       <Marker position={[28.14961672938298, -81.85145437717439]}>
         <Popup>BARC Entrance.</Popup>
       </Marker>
-      
+
+      <Marker position={markerPosition}>
+      <Popup>Initial Position Marker</Popup>
+      </Marker>
+
+      {linePositions.length > 0 && <DynamicLine line_positions={linePositions} />}
       
       
       
@@ -196,5 +219,7 @@ const MapEvents = () => {
     </MapContainer>
   );
 };
+
+
 
 export default Map;
