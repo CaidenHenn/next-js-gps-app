@@ -38,9 +38,6 @@ const Gps: React.FC = () => {
       setError(null);
     };
 
-    const errorCallback = (error: GeolocationPositionError) => {
-      console.error('Geolocation error:', error);
-    };
 
     const options: PositionOptions = {
       enableHighAccuracy: true,
@@ -48,12 +45,7 @@ const Gps: React.FC = () => {
       maximumAge: 0,
     };
 
-    if ('geolocation' in navigator) {
-      watchId = navigator.geolocation.watchPosition(successCallback, errorCallback, options);
-    } else {
-      setError('Geolocation is not supported by this browser.');
-    }
-
+    
     // Cleanup function
     return () => {
       if (watchId) {

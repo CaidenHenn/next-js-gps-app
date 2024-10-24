@@ -92,5 +92,20 @@ export const Navigation = () => {
 
   return { Navigate };
 };
+  // const CheckForInsideCirclePoints = (currentCoord,selected_new_coord) =>{
+  //   var circleCenter = [((currentCoord[0]+selected_new_coord[0])/2),((currentCoord[1]+selected_new_coord[1])/2)];
+  //   var radius = calculate_distance(currentCoord,selected_new_coord);
+  //   for (int isPointinCircle; i < sidewalk1coords.length; i++){
+  //     if (isPointinCircle(i, circleCenter, radius)){
+  //       return i;
+  //     }
+  //   }
+  // }
+
+
+  // const isPointinCircle = (point, circleCenter, radius) => {
+  //   const distance = calculate_distance(point,circleCenter);
+  //   return distance <= radius;
+  // }
 
 export default Navigation;
