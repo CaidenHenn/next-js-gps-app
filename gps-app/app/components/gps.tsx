@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Marker, Popup, useMap } from 'react-leaflet';
 import useDeviceOrientation from './direction';
+import { ToastContainer, toast } from 'react-toastify';
 import './map_components.css';
 import L from 'leaflet';
 
@@ -59,7 +60,7 @@ const Gps: React.FC = () => {
       directionMarkerRef.current.setRotation(0);
       
     }
-    console.log("Heading is : ",heading)
+    
   }, [heading]);
 
   if (error) {

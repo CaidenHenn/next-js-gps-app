@@ -1,22 +1,27 @@
 "use client"; // This marks the component as a Client Component
 import { useState } from "react";
 import { Polyline, Marker, Popup } from 'react-leaflet';
+import { toast } from 'react-toastify';
 
 export const Navigation = () => {
   const sidewalk1coords = [
-    [28.149775748402103,  -81.85095963540586],
-    [28.149944552942753, -81.85090951139267],
-    [28.150050017418955, -81.85086632068324],
-    [28.15009503167036, -81.85073120260438],
-    [28.150155745485613, -81.85065605639146],
-    [28.15024086990182, -81.85054662234343],
-    [28.150300402504914, -81.85041348975786],
-    [28.150319269443838, -81.85029485376542],
-    [28.150341623609453, -81.85017984192132],
-    [28.150355836222158, -81.85002726493207]
+    [28.14960987881424, -81.85144112053221],
+    [28.149603182041528, -81.8513541250505],
+    [28.149595901719472, -81.85125197114455],
+    [28.149579618505594, -81.85117684085435],
+    [28.1495793126917, -81.85108193524498],
+    [28.149572615917076, -81.85099493976325],
+    [28.14966239514615, -81.85097910358517],
+    [28.149748978824814, -81.85096722247091],
+    [28.14981173525345, -81.85094513074287],
+    [28.149881466135394, -81.85093028731144],
+    [28.149940735243455, -81.85090457143511],
+    [28.15001976066983, -81.85087028360003],
+    [28.150064497200088, -81.8508149127063],
+    [28.150104871154827, -81.85073318002786],
+    [28.15017664425612, -81.85077139108132],
+    [28.15024173461581, -81.85080993305033]
   ];
-
-  const goal = [28.150288374131215, -81.85080528259279];
 
   const calculate_distance = (coord1, coord2) => {
     const lat_diff = coord1[0] - coord2[0];
@@ -25,87 +30,61 @@ export const Navigation = () => {
   };
 
   const Navigate = (latlng, closest_coord_to_goal = null) => {
-    console.log("LATLNG:", latlng);
     if (!latlng) return;
-
-    // Find the closest point to the goal if not already calculated
-    if (closest_coord_to_goal == null) {
-      let min_distance_to_goal = 10;
-      let closest_goal_point = null;
-
-      for (let i = 0; i < sidewalk1coords.length; i++) {
-        const goal_distance_calculation = calculate_distance(goal, sidewalk1coords[i]);
-        if (goal_distance_calculation < min_distance_to_goal) {
-          closest_goal_point = sidewalk1coords[i];
-          min_distance_to_goal = goal_distance_calculation;
-        }
-      }
-      closest_coord_to_goal = closest_goal_point; // Update the closest point to the goal
-    }
-
-    // First locate the user's closest coordinate
+    
     let min_distance = 10;
     let closestCoord = [0, 0];
+    let point_index = 0;
 
     for (let i = 0; i < sidewalk1coords.length; i++) {
       const calculated_distance = calculate_distance(latlng, sidewalk1coords[i]);
       if (calculated_distance < min_distance) {
         min_distance = calculated_distance;
         closestCoord = sidewalk1coords[i];
+        point_index = i;
       }
     }
 
-    // Greedy algorithm to route to the next coordinate
-    if (min_distance < 0.00019680868092807034) {
-      closestCoord = GreedyRouter(closestCoord, latlng);
+    if (min_distance < 0.00009680868092807034) {
+      closestCoord = sidewalk1coords[point_index + 1];
     }
 
-    console.log("This marker coordinate is closest:", closestCoord);
-    console.log("DISTANCE IS:", min_distance);
+    // Draw a rectangle around points A and B with a specified width
+    if (sidewalk1coords[point_index - 1] != null) {
+      const pointA = sidewalk1coords[point_index - 1];
+      const pointB = sidewalk1coords[point_index];
+      const widthMeters = 5;
+
+      const metersPerDegreeLat = 111320;
+      const metersPerDegreeLng = 111320 * Math.cos((pointA[0] * Math.PI) / 180);
+
+      const latOffset = widthMeters / metersPerDegreeLat;
+      const lngOffset = widthMeters / metersPerDegreeLng;
+
+      const minLat = Math.min(pointA[0], pointB[0]) - latOffset;
+      const maxLat = Math.max(pointA[0], pointB[0]) + latOffset;
+      const minLng = Math.min(pointA[1], pointB[1]) - lngOffset;
+      const maxLng = Math.max(pointA[1], pointB[1]) + lngOffset;
+
+      const isInsideRectangle =
+        latlng[0] >= minLat &&
+        latlng[0] <= maxLat &&
+        latlng[1] >= minLng &&
+        latlng[1] <= maxLng;
+
+      if (isInsideRectangle) {
+        toast("In the rectangle");
+        console.log("In the rectangle");
+      } else {
+        console.log("Not in the rectangle");
+        
+      }
+    }
 
     return [closestCoord, min_distance, closest_coord_to_goal];
   };
 
-  const GreedyRouter = (currentCoord, latlng) => {
-    let selected_new_coord = null;
-    let min_distance_to_user = 10;
-    let min_distance_to_goal = 10;
-
-    for (let i = 0; i < sidewalk1coords.length; i++) {
-      const calculated_distance_to_user = calculate_distance(latlng, sidewalk1coords[i]);
-      if (calculated_distance_to_user < min_distance_to_user) {
-        if (sidewalk1coords[i] === currentCoord) {
-          continue;
-        } else {
-          const potentialCoord = sidewalk1coords[i];
-          const potential_coord_to_goal = calculate_distance(potentialCoord, goal);
-          if (potential_coord_to_goal < min_distance_to_goal) {
-            min_distance_to_goal = potential_coord_to_goal;
-            selected_new_coord = potentialCoord;
-          }
-        }
-      }
-    }
-
-    return selected_new_coord;
-  };
-
   return { Navigate };
 };
-  // const CheckForInsideCirclePoints = (currentCoord,selected_new_coord) =>{
-  //   var circleCenter = [((currentCoord[0]+selected_new_coord[0])/2),((currentCoord[1]+selected_new_coord[1])/2)];
-  //   var radius = calculate_distance(currentCoord,selected_new_coord);
-  //   for (int isPointinCircle; i < sidewalk1coords.length; i++){
-  //     if (isPointinCircle(i, circleCenter, radius)){
-  //       return i;
-  //     }
-  //   }
-  // }
-
-
-  // const isPointinCircle = (point, circleCenter, radius) => {
-  //   const distance = calculate_distance(point,circleCenter);
-  //   return distance <= radius;
-  // }
 
 export default Navigation;

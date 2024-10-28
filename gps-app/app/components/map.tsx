@@ -70,12 +70,12 @@ const MapEvents = () => {
   useEffect(() => {
     mapRef.current = map;
     // Rotate the map by 45 degrees on initial load
-        console.log(map); // Check the methods on the map instance
+        //console.log(map); // Check the methods on the map instance
         rotateMap(map, -47.5);
     
         return () => {
           // Cleanup if necessary
-          console.log('Cleanup');
+          
         };
       }, [map]);
   
@@ -86,7 +86,7 @@ const MapEvents = () => {
   const moveMarker = (key) => {
     const moveStep = 0.00001;
     const [lat, lng] = markerPosition;
-    console.log("MOVING");
+    
     setLinePositions([markerPosition,navigation.Navigate(markerPosition,closest_coord_to_goal)[0]]);
     switch (key) {
       case 'w':
@@ -106,7 +106,7 @@ const MapEvents = () => {
     }
 
     
-      console.log('Marker coordinates:', markerPosition);
+      
       
       
       
@@ -130,8 +130,8 @@ const MapEvents = () => {
   //event handler triggered when a shape or marker is added
   const onCreated = (e) => {
     const layer = e.layer; // Get the layer that was created
-    console.log("On created function running");
-    console.log(layer); // Log the entire layer object
+    
+
   
     // Check if the created layer is a polyline
     if (e.layerType === 'polyline') {
@@ -154,7 +154,7 @@ const MapEvents = () => {
 
 
     } else {
-        console.log('Layer type created:', e.layerType);
+        
     }
   };
   const DynamicLine = ({ line_positions }) => {
@@ -215,7 +215,7 @@ const MapEvents = () => {
       
       
 
-
+        
     </MapContainer>
   );
 };

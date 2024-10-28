@@ -2,9 +2,11 @@
 import { useState, useEffect } from "react";
 import Head from 'next/head';
 import RoutingMachine from './RoutingMachine';
+import { ToastContainer, toast } from 'react-toastify';
 import Image from "next/image";
 import Map from './components/map';
 import 'leaflet-rotate';
+import './toastStyles.css';
 const Dropdown = ({ options, onSelect }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selected, setSelected] = useState('');
@@ -54,7 +56,7 @@ export default function Home() {
   }, []);
 
   const handleDropdownSelect = (value) => {
-    console.log('Selected:', value);
+    
   };
 
   const handleMapReady = (map) => {
@@ -80,7 +82,7 @@ export default function Home() {
         <script src="https://unpkg.com/leaflet/dist/leaflet.js" defer></script>
         <script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js" defer></script>
       </Head>
-
+      
       <Map 
         waypoints={waypoints} // Pass waypoints to the Map
         showRoutingPath={isRoutingVisible} // Pass routing visibility state to Map
@@ -88,7 +90,14 @@ export default function Home() {
 
       <Dropdown options={dropdownOptions1} onSelect={handleDropdownSelect} />
       <Dropdown options={dropdownOptions2} onSelect={handleDropdownSelect} />
-
+      <ToastContainer 
+        position="bottom" 
+        autoClose={1} // Closes after 3 seconds
+        hideProgressBar={false} 
+        closeOnClick 
+        pauseOnHover 
+        draggable 
+      />
       <button onClick={() => setRoutingVisible(prev => !prev)}>
         {isRoutingVisible ? "Hide Routing Path" : "Show Routing Path"}
       </button>
