@@ -14,6 +14,8 @@ import 'leaflet-routing-machine';
 import RoutingMachine from './map_router';
 import Gps from './gps';
 import 'leaflet-rotate';
+import 'leaflet-rotatedmarker';
+
 import Navigation from './navigation'
 
 //Sets the icons to different marker types
@@ -37,8 +39,10 @@ L.Icon.Default.mergeOptions({
 const Map = ({ onMarkerPlaced, showRoutingPath }) => {
   const navigation = Navigation();
   const initialPosition = [28.14961672938298, -81.85145437717439];
+  const initialAngle = 0.0;
   const [linePositions, setLinePositions] = useState([])
   const [markerPosition, setMarkerPosition] = useState(initialPosition);
+  const [markerAngle, setMarkerAngle] = useState(initialAngle)
   const closest_coord_to_goal = null;
   const bounds = [
     [28.143425 , -81.8540972222], // Southwest coordinates
@@ -86,7 +90,8 @@ const MapEvents = () => {
   const moveMarker = (key) => {
     const moveStep = 0.00001;
     const [lat, lng] = markerPosition;
-    
+
+    const angMoveStep = 0.1;
     setLinePositions([markerPosition,navigation.Navigate(markerPosition,closest_coord_to_goal)[0]]);
     switch (key) {
       case 'w':
@@ -101,11 +106,24 @@ const MapEvents = () => {
       case 'd':
         setMarkerPosition([lat, lng + moveStep]);
         break;
+      
+
       default:
         break;
     }
 
-    
+    setMarkerAngle((ang) => {
+      switch (key) {
+        case 'q':
+          return (ang - angMoveStep) % 360;  // Keep angle within 0–360°
+          
+        case 'e':
+          return (ang + angMoveStep + 360) % 360; // Handle negative angles by adding 360
+          
+        default:
+          return ang;
+      }
+    });
       
       
       
@@ -160,6 +178,25 @@ const MapEvents = () => {
   const DynamicLine = ({ line_positions }) => {
     return <Polyline positions={line_positions} color="blue" />;
   };
+  const RotatingMarker = ({ position, angle }) => {
+    const markerRef = useRef(null);
+  
+    useEffect(() => {
+      if (markerRef.current) {
+        markerRef.current.setRotationAngle(angle); // Set rotation angle
+      }
+    }, [angle]);
+  
+    return (
+      <Marker
+        ref={markerRef}
+        position={position}
+        rotation={angle}
+      >
+        <Popup>Initial Position Marker</Popup>
+      </Marker>
+    );
+  };
   
   return (
     
@@ -206,9 +243,10 @@ const MapEvents = () => {
         <Popup>BARC Entrance.</Popup>
       </Marker>
 
-      <Marker position={markerPosition}>
-      <Popup>Initial Position Marker</Popup>
-      </Marker>
+      <RotatingMarker position={markerPosition} angle={markerAngle} />
+      
+  
+      
 
       {linePositions.length > 0 && <DynamicLine line_positions={linePositions} />}
       
@@ -219,6 +257,7 @@ const MapEvents = () => {
     </MapContainer>
   );
 };
+
 
 
 

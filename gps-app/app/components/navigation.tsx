@@ -1,7 +1,7 @@
 "use client"; // This marks the component as a Client Component
 import { useState } from "react";
 import { Polyline, Marker, Popup } from 'react-leaflet';
-import { toast } from 'react-toastify';
+
 
 export const Navigation = () => {
   const sidewalk1coords = [
@@ -29,7 +29,7 @@ export const Navigation = () => {
     return Math.sqrt(Math.pow(lat_diff, 2) + Math.pow(long_diff, 2));
   };
 
-  const Navigate = (latlng, closest_coord_to_goal = null) => {
+  const Navigate = (latlng, closest_coord_to_goal = null ) => {
     if (!latlng) return;
     
     let min_distance = 10;
@@ -73,7 +73,7 @@ export const Navigation = () => {
         latlng[1] <= maxLng;
 
       if (isInsideRectangle) {
-        toast("In the rectangle");
+        
         console.log("In the rectangle");
       } else {
         console.log("Not in the rectangle");
@@ -81,9 +81,12 @@ export const Navigation = () => {
       }
     }
 
+
     return [closestCoord, min_distance, closest_coord_to_goal];
   };
+  // NavigationAngleReader =(current_angle, tracking_line_angle) => {
 
+  // }
   return { Navigate };
 };
 
