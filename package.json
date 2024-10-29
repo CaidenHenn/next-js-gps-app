@@ -10,6 +10,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "express": "^4.21.1",
     "leaflet-rotatedmarker": "^0.2.0",
     "leaflet-routing-machine": "^3.2.12"
   }
