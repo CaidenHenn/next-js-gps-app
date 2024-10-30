@@ -7,7 +7,7 @@ const fs = require('fs');
 const path = require('path');
 
 const dev = process.env.NODE_ENV !== 'production';
-const hostname = 'localhost'; 
+const hostname = '192.168.1.53'; 
 //192.168.1.237
 const PORT = process.env.PORT || 80;
 const app = next({ dev,hostname,PORT });
