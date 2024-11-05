@@ -1,0 +1,16 @@
+/* toastStyles.css */
+.Toastify__toast {
+	font-size: 0.8rem;     /* Reduce font size */
+	padding: 8px;          /* Reduce padding */
+	min-height: 30px;      /* Reduce minimum height */
+  }
+  
+  .Toastify__toast-body {
+	margin: 0;             /* Remove margin */
+  }
+  
+  .Toastify__close-button {
+	width: 16px;           /* Reduce close button size */
+	height: 16px;
+  }
+  
