@@ -16,7 +16,7 @@ import Gps from './gps';
 import calculateBearing from './calculate_bearing';
 import 'leaflet-rotate';
 import 'leaflet-rotatedmarker';
-import Compass from './compass';
+import useCompass from './compass';
 
 import Navigation from './navigation'
 
@@ -35,7 +35,7 @@ L.Icon.Default.mergeOptions({
 
 //global value for testing
 
-  
+
 const Map = ({ onMarkerPlaced, showRoutingPath }) => {
   const navigation = Navigation();
   const initialPosition = [28.14961672938298, -81.85145437717439];
@@ -49,11 +49,17 @@ const Map = ({ onMarkerPlaced, showRoutingPath }) => {
     [28.143425 , -81.8540972222], // Southwest coordinates
     [28.1531166667, -81.84305]  // Northeast coordinates
   ];
-  const handleCompassHeading = (heading: number) => {
-    setCompassHeading(heading);
-    console.log("User Bearing: ",compassHeading);
+  //internal
+  const heading = useCompass();
+  //useRef(0);
+  //useCompass(); // Correct: this is inside a functional component
+  const increment = () => {
+    heading.current++;
   }
+
   
+
+
  const mapRef = useRef();
   // defines position component as Center of the map
   const position = [28.143425 , -81.8540972222]; 
@@ -100,13 +106,14 @@ const MapEvents = () => {
     setLinePositions([markerPosition,nextPoint]);
     console.log("Calling Bearing");
     const expectedBearing=calculateBearing([markerPosition,nextPoint]);
-    console.log("Expected bearing: ",expectedBearing);
-    console.log("User Bearing: ",compassHeading);
+
 
     
     switch (key) {
       case 'w':
         setMarkerPosition([lat + moveStep, lng]);
+        increment();
+        
         break;
       case 's':
         setMarkerPosition([lat - moveStep, lng]);
@@ -246,7 +253,7 @@ const MapEvents = () => {
       />
       </FeatureGroup>
       <MapEvents />
-      <Gps />
+      <Gps compassBearing = {heading} />
       <Marker position={[28.150288374131215, -81.85080528259279]}>
         <Popup>IST Entrance.</Popup>
       </Marker>
@@ -256,7 +263,7 @@ const MapEvents = () => {
 
       <RotatingMarker position={markerPosition} angle={markerAngle} />
       
-      <Compass onHeadingChange={handleCompassHeading} />
+
       
 
       {linePositions.length > 0 && <DynamicLine line_positions={linePositions} />}

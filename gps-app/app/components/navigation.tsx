@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Polyline, Marker, Popup } from 'react-leaflet';
 
 
-export const Navigation = () => {
+export const Navigation = (compass) => {
   const sidewalk1coords = [
     [28.14960987881424, -81.85144112053221],
     [28.149603182041528, -81.8513541250505],
