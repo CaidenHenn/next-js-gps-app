@@ -2,7 +2,9 @@
 import { useEffect, useState } from "react";
 
 const useCompass = () => {
+  //initialize angle
   const [angle, setAngle] = useState(0);
+  //bool if device type is IOS
   const isIOS = typeof navigator !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent);
 
   useEffect(() => {
@@ -11,16 +13,18 @@ const useCompass = () => {
     }
 
     const handler = (e) => {
-      // Check if the properties are available
+      ///webkitCompassHeading is IOS
       if (e.webkitCompassHeading !== undefined) {
         setAngle(e.webkitCompassHeading);
+        //alpha is android
       } else if (e.alpha !== null) {
+        //find angle by subtracting it from 360
         setAngle(Math.abs(e.alpha - 360));
       } else {
         console.log("Device orientation data not available");
       }
     };
-
+    //code to start IOS compass
     const startCompassIOS = async () => {
       if (typeof DeviceOrientationEvent.requestPermission === "function") {
         try {
@@ -42,10 +46,13 @@ const useCompass = () => {
     if (isIOS) {
       startCompassIOS();
     } else {
+      //listens to deviceorientationabsolute if not IOS
       window.addEventListener("deviceorientationabsolute", handler, true);
     }
-
+//NOTE: Deviceorientation event provides orientation relative to the starting orientation,
+//Deviceorientationabsolute event provides orientation relative to earth
     return () => {
+      //cleanup functions
       if (isIOS) {
         window.removeEventListener("deviceorientation", handler, true);
       } else {
@@ -54,7 +61,7 @@ const useCompass = () => {
     };
   }, []);
 
-  return angle; // Return the heading value from the hook
+  return angle-47.5; // subtracting for map rotation
 };
 
 export default useCompass;

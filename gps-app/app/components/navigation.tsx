@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Polyline, Marker, Popup } from 'react-leaflet';
 
 
-export const Navigation = (compass) => {
+export const Navigation = () => {
   const sidewalk1coords = [
     [28.14960987881424, -81.85144112053221],
     [28.149603182041528, -81.8513541250505],
@@ -29,7 +29,7 @@ export const Navigation = (compass) => {
     return Math.sqrt(Math.pow(lat_diff, 2) + Math.pow(long_diff, 2));
   };
 
-  const Navigate = (latlng, closest_coord_to_goal = null ) => {
+  const Navigate = (latlng ) => {
     if (!latlng) return;
     
     let min_distance = 10;
@@ -82,7 +82,7 @@ export const Navigation = (compass) => {
     }
 
 
-    return [closestCoord, min_distance, closest_coord_to_goal];
+    return [closestCoord, min_distance];
   };
   // NavigationAngleReader =(current_angle, tracking_line_angle) => {
 

@@ -17,7 +17,7 @@ import calculateBearing from './calculate_bearing';
 import 'leaflet-rotate';
 import 'leaflet-rotatedmarker';
 import useCompass from './compass';
-
+import { useGps } from './GpsProvider';
 import Navigation from './navigation'
 
 //Sets the icons to different marker types
@@ -38,29 +38,27 @@ L.Icon.Default.mergeOptions({
 
 const Map = ({ onMarkerPlaced, showRoutingPath }) => {
   const navigation = Navigation();
+  const {  position: GPSposition, accuracy, setPosition, setAccuracy } = useGps();
+
   const initialPosition = [28.14961672938298, -81.85145437717439];
   const initialAngle = 0.0;
   const [linePositions, setLinePositions] = useState([])
-  const [compassHeading, setCompassHeading] = useState(initialAngle);
+  const [error, setError] = useState<string | null>(null);
   const [markerPosition, setMarkerPosition] = useState(initialPosition);
   const [markerAngle, setMarkerAngle] = useState(initialAngle)
-  const closest_coord_to_goal = null;
   const bounds = [
     [28.143425 , -81.8540972222], // Southwest coordinates
     [28.1531166667, -81.84305]  // Northeast coordinates
   ];
   //internal
   const heading = useCompass();
-  //useRef(0);
-  //useCompass(); // Correct: this is inside a functional component
-  const increment = () => {
-    heading.current++;
-  }
-
+  const mapRef = useRef();
+  
+  
   
 
-
- const mapRef = useRef();
+  
+ 
   // defines position component as Center of the map
   const position = [28.143425 , -81.8540972222]; 
   //local image path
@@ -72,6 +70,13 @@ const Map = ({ onMarkerPlaced, showRoutingPath }) => {
     
 ];
  
+
+
+
+
+
+
+
 const MapEvents = () => {
   const map= useMap();
   // useEffect(() => {
@@ -80,55 +85,109 @@ const MapEvents = () => {
   //     map.fitBounds(bounds); // Automatically adjust to bounds
   //   }
   // }, []);
+  useEffect(() => {
+    let watchId: number;
+    
+    if (navigator.geolocation) {
 
+      //this allows the component to re-render when position is changed
+      watchId = navigator.geolocation.watchPosition(
+        (GPSpostion: GeolocationPosition) => {
+          const { latitude, longitude, accuracy } = GPSpostion.coords;
+          const newPosition = new L.LatLng(latitude, longitude);
+          setPosition(newPosition);
+          setAccuracy(accuracy);
+          if (map!=null){
+          //map.setView(newPosition, 16);
+          }
+          setError(null);
+        },
+        (error: GeolocationPositionError) => {
+          setError(`Error: ${error.message}`);
+          
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0,
+        }
+      );
+    } else {
+      setError('Geolocation is not supported by this browser.');
+    }
+
+    return () => {
+      if (watchId) {
+        navigator.geolocation.clearWatch(watchId);
+      }
+    };
+  }, [map]);
+  
   useEffect(() => {
     mapRef.current = map;
     // Rotate the map by 45 degrees on initial load
         //console.log(map); // Check the methods on the map instance
         rotateMap(map, -47.5);
-    
-        return () => {
-          // Cleanup if necessary
-          
-        };
+        //const gps = Gps(heading,map);
+        
       }, [map]);
   
       return null; // No rendering needed
     };
+    const gpsElement = <Gps position= {GPSposition} accuracy={accuracy} compassBearing={heading} mapRef={mapRef.current} />;
+  
   const polylineRef = useRef<L.Polyline | null>(null);
+
+  // const navigationMethod =() => {
+  //   Gps
+  // }
+
+
+  useEffect(() => {
+    if (GPSposition != null){
+    console.log("Updated GPS Position:", GPSposition);
+    const markerPosition=[GPSposition.lat,GPSposition.lng];
+    const nextPoint=navigation.Navigate(markerPosition)[0];
+    setLinePositions([markerPosition,nextPoint]);
+    const expectedBearing=calculateBearing([markerPosition,nextPoint]);
+    }
+  }, [GPSposition]);
+
+
 
   const moveMarker = (key) => {
     const moveStep = 0.00001;
-    const [lat, lng] = markerPosition;
+    console.log("HERE:")
+    console.log(GPSposition);
 
     const angMoveStep = 0.1;
-    const nextPoint=navigation.Navigate(markerPosition,closest_coord_to_goal)[0];
+    const nextPoint=navigation.Navigate(markerPosition)[0];
     setLinePositions([markerPosition,nextPoint]);
     console.log("Calling Bearing");
     const expectedBearing=calculateBearing([markerPosition,nextPoint]);
 
 
     
-    switch (key) {
-      case 'w':
-        setMarkerPosition([lat + moveStep, lng]);
-        increment();
+    // switch (key) {
+    //   case 'w':
+    //     setMarkerPosition([lat + moveStep, lng]);
+    //     increment();
         
-        break;
-      case 's':
-        setMarkerPosition([lat - moveStep, lng]);
-        break;
-      case 'a':
-        setMarkerPosition([lat, lng - moveStep]);
-        break;
-      case 'd':
-        setMarkerPosition([lat, lng + moveStep]);
-        break;
+    //     break;
+    //   case 's':
+    //     setMarkerPosition([lat - moveStep, lng]);
+    //     break;
+    //   case 'a':
+    //     setMarkerPosition([lat, lng - moveStep]);
+    //     break;
+    //   case 'd':
+    //     setMarkerPosition([lat, lng + moveStep]);
+    //     break;
       
 
-      default:
-        break;
-    }
+    //   default:
+    //     break;
+    // }
 
     setMarkerAngle((ang) => {
       switch (key) {
@@ -253,7 +312,8 @@ const MapEvents = () => {
       />
       </FeatureGroup>
       <MapEvents />
-      <Gps compassBearing = {heading} />
+      
+      {gpsElement}
       <Marker position={[28.150288374131215, -81.85080528259279]}>
         <Popup>IST Entrance.</Popup>
       </Marker>

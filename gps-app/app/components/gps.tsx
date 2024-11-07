@@ -1,17 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
+import Navigation from './navigation'
 import getCompassHeading from './map'
+import { useGps } from './GpsProvider';
 interface GpsProps {
   compassBearing?: number; // Define the prop type here
 }
-
-const Gps: React.FC<GpsProps> = ({ compassBearing }) => {
-  const [position, setPosition] = useState<L.LatLng | null>(null);
-  const [accuracy, setAccuracy] = useState<number | null>(null);
+ 
+const Gps: React.FC<GpsProps>= ({ position,accuracy,compassBearing, mapRef }) => {
+  const navigation = Navigation();
+  
+  // const [position, setPosition] = useState<L.LatLng | null>(null);
+  // const [accuracy, setAccuracy] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   
-  const map = useMap();
+  const map = mapRef;
   const currentHeading = compassBearing;
 
   
@@ -26,40 +30,12 @@ const Gps: React.FC<GpsProps> = ({ compassBearing }) => {
     iconSize: [128, 128],
     iconAnchor: [48, 64], // Adjust based on the icon
   });
+  
 
-  useEffect(() => {
-    let watchId: number;
 
-    if (navigator.geolocation) {
-      watchId = navigator.geolocation.watchPosition(
-        (position: GeolocationPosition) => {
-          const { latitude, longitude, accuracy } = position.coords;
-          const newPosition = new L.LatLng(latitude, longitude);
-          setPosition(newPosition);
-          setAccuracy(accuracy);
-          map.setView(newPosition, 16);
-          setError(null);
-        },
-        (error: GeolocationPositionError) => {
-          setError(`Error: ${error.message}`);
-          
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 5000,
-          maximumAge: 0,
-        }
-      );
-    } else {
-      setError('Geolocation is not supported by this browser.');
-    }
 
-    return () => {
-      if (watchId) {
-        navigator.geolocation.clearWatch(watchId);
-      }
-    };
-  }, [map]);
+  
+  
   const normalizeAngle = (angle) => {
     let normalizedAngle = angle % 360;
     if (normalizedAngle < 0) {
@@ -84,7 +60,7 @@ const Gps: React.FC<GpsProps> = ({ compassBearing }) => {
 
 
         markerRef.current.setRotationAngle(degrees_to_radians(normalized_compass_angle)); // Set rotation angle
-        console.log('raw angle', angle)
+        //console.log('raw positon', position)
         //console.log('normalized angle:',normalized_compass_angle)
         markerRef.current.setRotationOrigin('center')
       }

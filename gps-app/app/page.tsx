@@ -1,11 +1,12 @@
 "use client"; // This marks the component as a Client Component
 import { useState, useEffect } from "react";
 import Head from 'next/head';
-import RoutingMachine from './RoutingMachine';
+
 import Image from "next/image";
 import Map from './components/map';
 import 'leaflet-rotate';
 import './toastStyles.css';
+import { GpsProvider } from './components/GpsProvider';
 const Dropdown = ({ options, onSelect }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selected, setSelected] = useState('');
@@ -81,12 +82,12 @@ export default function Home() {
         <script src="https://unpkg.com/leaflet/dist/leaflet.js" defer></script>
         <script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js" defer></script>
       </Head>
-      
+      <GpsProvider>
       <Map 
         waypoints={waypoints} // Pass waypoints to the Map
         showRoutingPath={isRoutingVisible} // Pass routing visibility state to Map
       />
-
+      </GpsProvider>
       <Dropdown options={dropdownOptions1} onSelect={handleDropdownSelect} />
       <Dropdown options={dropdownOptions2} onSelect={handleDropdownSelect} />
       
