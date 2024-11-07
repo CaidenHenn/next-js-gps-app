@@ -79,15 +79,18 @@ const Map = ({ onMarkerPlaced, showRoutingPath }) => {
 
 const MapEvents = () => {
   const map= useMap();
-  // useEffect(() => {
-  //   const map = mapRef.current;
-  //   if (map) {
-  //     map.fitBounds(bounds); // Automatically adjust to bounds
-  //   }
-  // }, []);
-  useEffect(() => {
+
+  const [lastPosition, setLastPosition] = useState(null);
+  const positionThreshold = 0.0001;
+  const calculateDistance = (coord1, coord2) => {
+    const lat_diff = coord1.lat - coord2.lat;
+    const long_diff = coord1.lng - coord2.lng;
+    return Math.sqrt(Math.pow(lat_diff, 2) + Math.pow(long_diff, 2));
+  };
+  
+  const geolocation_method= () => {
     let watchId: number;
-    
+    console.log("I too am being queried!")
     if (navigator.geolocation) {
 
       //this allows the component to re-render when position is changed
@@ -98,7 +101,7 @@ const MapEvents = () => {
           setPosition(newPosition);
           setAccuracy(accuracy);
           if (map!=null){
-          //map.setView(newPosition, 16);
+          map.setView(newPosition, 16);
           }
           setError(null);
         },
@@ -114,14 +117,20 @@ const MapEvents = () => {
       );
     } else {
       setError('Geolocation is not supported by this browser.');
-    }
-
-    return () => {
+    }return () => {
       if (watchId) {
         navigator.geolocation.clearWatch(watchId);
       }
     };
-  }, [map]);
+  }
+
+  useEffect(() => {
+    geolocation_method();
+    console.log("I am being queried!")
+    
+
+    
+  }, []);
   
   useEffect(() => {
     mapRef.current = map;
@@ -145,81 +154,13 @@ const MapEvents = () => {
 
   useEffect(() => {
     if (GPSposition != null){
-    console.log("Updated GPS Position:", GPSposition);
+    
     const markerPosition=[GPSposition.lat,GPSposition.lng];
     const nextPoint=navigation.Navigate(markerPosition)[0];
     setLinePositions([markerPosition,nextPoint]);
     const expectedBearing=calculateBearing([markerPosition,nextPoint]);
     }
   }, [GPSposition]);
-
-
-
-  const moveMarker = (key) => {
-    const moveStep = 0.00001;
-    console.log("HERE:")
-    console.log(GPSposition);
-
-    const angMoveStep = 0.1;
-    const nextPoint=navigation.Navigate(markerPosition)[0];
-    setLinePositions([markerPosition,nextPoint]);
-    console.log("Calling Bearing");
-    const expectedBearing=calculateBearing([markerPosition,nextPoint]);
-
-
-    
-    // switch (key) {
-    //   case 'w':
-    //     setMarkerPosition([lat + moveStep, lng]);
-    //     increment();
-        
-    //     break;
-    //   case 's':
-    //     setMarkerPosition([lat - moveStep, lng]);
-    //     break;
-    //   case 'a':
-    //     setMarkerPosition([lat, lng - moveStep]);
-    //     break;
-    //   case 'd':
-    //     setMarkerPosition([lat, lng + moveStep]);
-    //     break;
-      
-
-    //   default:
-    //     break;
-    // }
-
-    setMarkerAngle((ang) => {
-      switch (key) {
-        case 'q':
-          return (ang - angMoveStep) % 360;  // Keep angle within 0–360°
-          
-        case 'e':
-          return (ang + angMoveStep + 360) % 360; // Handle negative angles by adding 360
-          
-        default:
-          return ang;
-      }
-    });
-      
-      
-      
-      
-
-  };
-  useEffect(() => {
-    const handleKeyDown = (event) => {
-      moveMarker(event.key);
-    };
-
-    // Add keydown event listener when the component is mounted
-    window.addEventListener('keydown', handleKeyDown);
-
-    // Cleanup the event listener when the component is unmounted
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [markerPosition]);
 
 
   //event handler triggered when a shape or marker is added
