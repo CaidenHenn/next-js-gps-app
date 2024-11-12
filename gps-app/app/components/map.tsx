@@ -19,6 +19,7 @@ import 'leaflet-rotatedmarker';
 import useCompass from './compass';
 import { useGps } from './GpsProvider';
 import Navigation from './navigation'
+import { useGeoLocation } from './GeoLocationContext';
 
 //Sets the icons to different marker types
 delete L.Icon.Default.prototype._getIconUrl;
@@ -38,7 +39,7 @@ L.Icon.Default.mergeOptions({
 
 const Map = ({ onMarkerPlaced, showRoutingPath }) => {
   const navigation = Navigation();
-  const {  position: GPSposition, accuracy, setPosition, setAccuracy } = useGps();
+  const {  position: GPSposition, accuracy} = useGps();;
 
   const initialPosition = [28.14961672938298, -81.85145437717439];
   const initialAngle = 0.0;
@@ -88,49 +89,16 @@ const MapEvents = () => {
     return Math.sqrt(Math.pow(lat_diff, 2) + Math.pow(long_diff, 2));
   };
   
-  const geolocation_method= () => {
-    let watchId: number;
-    console.log("I too am being queried!")
-    if (navigator.geolocation) {
-
-      //this allows the component to re-render when position is changed
-      watchId = navigator.geolocation.watchPosition(
-        (GPSpostion: GeolocationPosition) => {
-          const { latitude, longitude, accuracy } = GPSpostion.coords;
-          const newPosition = new L.LatLng(latitude, longitude);
-          setPosition(newPosition);
-          setAccuracy(accuracy);
-          if (map!=null){
-          map.setView(newPosition, 16);
-          }
-          setError(null);
-        },
-        (error: GeolocationPositionError) => {
-          setError(`Error: ${error.message}`);
-          
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 5000,
-          maximumAge: 0,
-        }
-      );
-    } else {
-      setError('Geolocation is not supported by this browser.');
-    }return () => {
-      if (watchId) {
-        navigator.geolocation.clearWatch(watchId);
-      }
-    };
-  }
-
   useEffect(() => {
-    geolocation_method();
-    console.log("I am being queried!")
-    
 
-    
-  }, []);
+    console.log("Position", GPSposition)
+    if (GPSposition && mapRef.current) {
+      map.setView([GPSposition.lat, GPSposition.lng], 40);
+    }
+  }, [position]);
+
+  
+
   
   useEffect(() => {
     mapRef.current = map;

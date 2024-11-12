@@ -51,8 +51,10 @@ export default function Home() {
   const [isMounted, setIsMounted] = useState(false);
   const [isRoutingVisible, setRoutingVisible] = useState(false);
   const [mapInstance, setMapInstance] = useState(null);
+  
   useEffect(() => {
     setIsMounted(true);
+    
   }, []);
 
   const handleDropdownSelect = (value) => {
