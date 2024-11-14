@@ -3,7 +3,7 @@ import { Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import Navigation from './navigation'
 import getCompassHeading from './map'
-import { useGps } from './GpsProvider';
+
 interface GpsProps {
   compassBearing?: number; // Define the prop type here
 }

@@ -1,17 +1,14 @@
 // app/components/Map.tsx
 "use client";
 import { MapContainer, TileLayer, Marker, Popup, useMap, FeatureGroup ,Polyline  } from 'react-leaflet';
-
 import { useEffect, useState,useRef } from 'react';
 import { EditControl } from 'react-leaflet-draw';
-import ReactDOM from "react-dom";
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import { rotateMap } from './rotate_map';
 import 'leaflet-draw'; // Import Leaflet Draw
 import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
 import 'leaflet-routing-machine';
-import RoutingMachine from './map_router';
 import Gps from './gps';
 import calculateBearing from './calculate_bearing';
 import 'leaflet-rotate';
@@ -19,7 +16,6 @@ import 'leaflet-rotatedmarker';
 import useCompass from './compass';
 import { useGps } from './GpsProvider';
 import Navigation from './navigation'
-import { useGeoLocation } from './GeoLocationContext';
 
 //Sets the icons to different marker types
 delete L.Icon.Default.prototype._getIconUrl;
@@ -28,42 +24,24 @@ L.Icon.Default.mergeOptions({
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
-//ist->Barc Path coordinates
-
-//defiens the map component
-
-// const defaultRotation = 0;
-
-//global value for testing
 
 
 const Map = ({ onMarkerPlaced, showRoutingPath }) => {
   const navigation = Navigation();
   const {  position: GPSposition, accuracy} = useGps();;
-
   const initialPosition = [28.14961672938298, -81.85145437717439];
   const initialAngle = 0.0;
   const [linePositions, setLinePositions] = useState([])
-  const [error, setError] = useState<string | null>(null);
   const [markerPosition, setMarkerPosition] = useState(initialPosition);
   const [markerAngle, setMarkerAngle] = useState(initialAngle)
-  const bounds = [
-    [28.143425 , -81.8540972222], // Southwest coordinates
-    [28.1531166667, -81.84305]  // Northeast coordinates
-  ];
   //internal
   const heading = useCompass();
   const mapRef = useRef();
-  
-  
-  
-
-  
- 
   // defines position component as Center of the map
   const position = [28.143425 , -81.8540972222]; 
   //local image path
   const imageUrl = '/satellite_poly_gps.jpg';
+  const gpsElement = <Gps position= {GPSposition} accuracy={accuracy} compassBearing={heading} mapRef={mapRef.current} />;
   // Define bounds component
  const imageBounds = [
   [28.143540, -81.853317],// Southwest coordinates
@@ -71,53 +49,23 @@ const Map = ({ onMarkerPlaced, showRoutingPath }) => {
     
 ];
  
-
-
-
-
-
-
-
 const MapEvents = () => {
   const map= useMap();
-
-  const [lastPosition, setLastPosition] = useState(null);
-  const positionThreshold = 0.0001;
-  const calculateDistance = (coord1, coord2) => {
-    const lat_diff = coord1.lat - coord2.lat;
-    const long_diff = coord1.lng - coord2.lng;
-    return Math.sqrt(Math.pow(lat_diff, 2) + Math.pow(long_diff, 2));
-  };
   
   useEffect(() => {
-
     console.log("Position", GPSposition)
     if (GPSposition && mapRef.current) {
       map.setView([GPSposition.lat, GPSposition.lng], 40);
     }
   }, [position]);
-
-  
-
-  
   useEffect(() => {
     mapRef.current = map;
     // Rotate the map by 45 degrees on initial load
-        //console.log(map); // Check the methods on the map instance
         rotateMap(map, -47.5);
-        //const gps = Gps(heading,map);
-        
       }, [map]);
-  
-      return null; // No rendering needed
+      return null;
     };
-    const gpsElement = <Gps position= {GPSposition} accuracy={accuracy} compassBearing={heading} mapRef={mapRef.current} />;
-  
-  const polylineRef = useRef<L.Polyline | null>(null);
 
-  // const navigationMethod =() => {
-  //   Gps
-  // }
 
 
   useEffect(() => {
@@ -130,14 +78,9 @@ const MapEvents = () => {
     }
   }, [GPSposition]);
 
-
-  //event handler triggered when a shape or marker is added
+  //gets called on creation of leaflet draw elements
   const onCreated = (e) => {
-    const layer = e.layer; // Get the layer that was created
-    
-
-  
-    // Check if the created layer is a polyline
+    const layer = e.layer; 
     if (e.layerType === 'polyline') {
         const latlngs = layer.getLatLngs(); 
         console.log('Polyline coordinates:', latlngs);
@@ -147,32 +90,23 @@ const MapEvents = () => {
         const latlngs = layer.getLatLngs(); 
         console.log('Polygon coordinates:', latlngs);
         // Add the polygon to the map
-        layer.addTo(mapRef.current); // Add to the map instance
+        layer.addTo(mapRef.current); 
 
-    } if (e.layerType === 'marker') {
-
-
-
-      
-
-
-
-    } else {
-        
-    }
+    } 
   };
   const DynamicLine = ({ line_positions }) => {
     return <Polyline positions={line_positions} color="blue" />;
   };
+
+
+  //method ffor handling rotated compass marker
   const RotatingMarker = ({ position, angle }) => {
     const markerRef = useRef(null);
-  
     useEffect(() => {
       if (markerRef.current) {
         markerRef.current.setRotationAngle(angle); // Set rotation angle
       }
     }, [angle]);
-  
     return (
       <Marker
         ref={markerRef}
@@ -189,20 +123,13 @@ const MapEvents = () => {
     <MapContainer whenCreated={mapInstance => 
     { mapRef.current = mapInstance; }} 
     center={position} 
-    //minZoom={17}
     zoom ={17}
     rotate={true}
-   // bounds={bounds}
-    // maxBounds={bounds}
     style={{ height: '800px', width: '100%' }}  >
-      
-    
-      {/* <ImageOverlay /> */}
       <TileLayer
   url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
   attribution='&copy; <a href="https://www.esri.com/">Esri</a> contributors'
 />
-
 
       <FeatureGroup>
       <EditControl
@@ -229,18 +156,9 @@ const MapEvents = () => {
       <Marker position={[28.14961672938298, -81.85145437717439]}>
         <Popup>BARC Entrance.</Popup>
       </Marker>
-
       <RotatingMarker position={markerPosition} angle={markerAngle} />
-      
-
-      
-
       {linePositions.length > 0 && <DynamicLine line_positions={linePositions} />}
       
-      
-      
-
-        
     </MapContainer>
   );
 };

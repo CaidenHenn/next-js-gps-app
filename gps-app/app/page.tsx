@@ -86,8 +86,8 @@ export default function Home() {
       </Head>
       <GpsProvider>
       <Map 
-        waypoints={waypoints} // Pass waypoints to the Map
-        showRoutingPath={isRoutingVisible} // Pass routing visibility state to Map
+        waypoints={waypoints} 
+        showRoutingPath={isRoutingVisible} 
       />
       </GpsProvider>
       <Dropdown options={dropdownOptions1} onSelect={handleDropdownSelect} />
