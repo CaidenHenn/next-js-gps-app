@@ -19,6 +19,7 @@ import 'leaflet-rotatedmarker';
 import useCompass from './compass';
 
 import Navigation from './navigation'
+import user_direction from './user_direction'
 
 //Sets the icons to different marker types
 delete L.Icon.Default.prototype._getIconUrl;
@@ -163,7 +164,23 @@ const MapEvents = () => {
   }, [markerPosition]);
 
 
+<<<<<<< Updated upstream
   //event handler triggered when a shape or marker is added
+=======
+  useEffect(() => {
+    if (GPSposition != null){
+    
+    const markerPosition=[GPSposition.lat,GPSposition.lng];
+    const nextPoint=navigation.Navigate(markerPosition)[0];
+    setLinePositions([markerPosition,nextPoint]);
+    //user_direction should automatically get user location and expected bearing and direct user
+    //user_direction();
+    //const expectedBearing=calculateBearing([markerPosition,nextPoint]);
+    }
+  }, [GPSposition]);
+
+  //gets called on creation of leaflet draw elements
+>>>>>>> Stashed changes
   const onCreated = (e) => {
     const layer = e.layer; // Get the layer that was created
     
